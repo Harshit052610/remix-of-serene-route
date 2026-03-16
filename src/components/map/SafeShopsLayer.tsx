@@ -43,6 +43,7 @@ export const SafeShopsLayer: React.FC<SafeShopsLayerProps> = ({
   const loadSafeShops = useCallback(async () => {
     if (!map || !isVisible) return;
 
+    console.log('🛍️ Loading Safe Shops data for current view...');
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current.clear();
@@ -50,16 +51,19 @@ export const SafeShopsLayer: React.FC<SafeShopsLayerProps> = ({
     // If we have a route, search along the route
     const searchPoints: LatLng[] = routePath
       ? routePath
-          .filter((_, i) => i % Math.max(1, Math.floor(routePath.length / 5)) === 0)
-          .map((p) => ({ lat: p.lat(), lng: p.lng() }))
+        .filter((_, i) => i % Math.max(1, Math.floor(routePath.length / 5)) === 0)
+        .map((p) => ({ lat: p.lat(), lng: p.lng() }))
       : [center];
+
+    console.log(`📍 Searching around ${searchPoints.length} points.`);
 
     for (const point of searchPoints) {
       for (const type of SHOP_TYPES) {
         try {
           const places = await searchNearby(point, type, 1500);
+          console.log(`🔍 Found ${places.length} results for shop type: ${type}`);
 
-          places.slice(0, 5).forEach((place) => {
+          places.slice(0, 5).forEach((place: any) => {
             if (markersRef.current.has(place.placeId)) return;
 
             const marker = new google.maps.Marker({
