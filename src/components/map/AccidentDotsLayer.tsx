@@ -31,12 +31,13 @@ export const AccidentDotsLayer: React.FC<AccidentDotsLayerProps> = ({ map, isVis
                 map,
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
-                    scale: isBlackspot ? 5 : 2.5, // Small but visible
-                    fillColor: isBlackspot ? '#000000' : '#333333',
-                    fillOpacity: 1,
-                    strokeColor: isBlackspot ? '#EF4444' : '#000000', // Red ring for high-priority blackspots
-                    strokeWeight: isBlackspot ? 2 : 1,
+                    scale: isBlackspot ? 6 : 4,
+                    fillColor: isBlackspot ? '#000000' : '#EF4444',
+                    fillOpacity: 0.8,
+                    strokeColor: isBlackspot ? '#EF4444' : '#FFFFFF',
+                    strokeWeight: 2,
                 },
+                zIndex: isBlackspot ? 1000 : 1,
                 clickable: true
             });
 

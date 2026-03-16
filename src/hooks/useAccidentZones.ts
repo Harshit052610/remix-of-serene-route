@@ -22,7 +22,7 @@ export interface AccidentZone {
 
 const FIREBASE_PROJECT_ID = 'gen-lang-client-0167350673';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBimU8GpiVerwBbsyUhq3c7jL_G2D2az3U';
-const FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/accident_zones?pageSize=2000&key=${GOOGLE_MAPS_API_KEY}`;
+const FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/accident_zones?key=${GOOGLE_MAPS_API_KEY}`;
 
 export const useAccidentZones = () => {
   const [zones, setZones] = useState<AccidentZone[]>([]);
