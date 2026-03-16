@@ -1,49 +1,75 @@
-import pandas as pd
+import csv
 import json
+import os
 
-df = pd.read_csv('6accident_data.csv')
+def generate_combined_json():
+    print("🚀 Merging datasets for map visualization...")
+    records = []
+    
+    # 1. PROCESS MAIN DATASET
+    try:
+        main_path = '6accident_data.csv'
+        if os.path.exists(main_path):
+            with open(main_path, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                count = 0
+                for row in reader:
+                    try:
+                        lat = float(row['Latitude'])
+                        lng = float(row['Longitude'])
+                        if 6 <= lat <= 38 and 68 <= lng <= 98:
+                            records.append({
+                                'id': f"main-{count}",
+                                'lat': lat,
+                                'lng': lng,
+                                'severity': row.get('Accident_Severity', 'Serious'),
+                                'weather': row.get('Weather_Conditions', 'N/A'),
+                                'road_type': row.get('Road_Type', 'N/A'),
+                                'casualties': int(row.get('Number_of_Casualties', 0)),
+                                'point_type': 'original'
+                            })
+                            count += 1
+                        if count >= 2000: break
+                    except: continue
+            print(f"✅ Loaded {count} main records.")
+    except Exception as e:
+        print(f"⚠️ Main dataset error: {e}")
 
-# Filter for India bounds
-india_df = df[(df['Latitude'] >= 6) & (df['Latitude'] <= 38) & 
-              (df['Longitude'] >= 68) & (df['Longitude'] <= 98)].copy()
+    # 2. PROCESS VIJAYAWADA BLACKSPOTS
+    try:
+        vj_path = 'vijayawada_blackspots.csv'
+        if os.path.exists(vj_path):
+            with open(vj_path, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                vj_count = 0
+                for row in reader:
+                    try:
+                        lat = float(row['Latitude'])
+                        lng = float(row['Longitude'])
+                        records.append({
+                            'id': f"vj-{vj_count}",
+                            'lat': lat,
+                            'lng': lng,
+                            'severity': row.get('Severity', 'Fatal'),
+                            'weather': 'N/A',
+                            'road_type': row.get('Road_Type', 'N/A'),
+                            'casualties': 0,
+                            'point_type': 'blackspot',
+                            'landmark': row.get('Nearby_Landmark', 'N/A'),
+                            'risk_info': row.get('Risk_Factor', 'High Density'),
+                            'incident_count': 25
+                        })
+                        vj_count += 1
+                    except: continue
+            print(f"✅ Loaded {vj_count} blackspots.")
+    except Exception as e:
+        print(f"⚠️ Blackspots error: {e}")
 
-# Replace NaNs with suitable defaults
-india_df.fillna({
-    'Accident_Severity': 'Unknown',
-    'Weather_Conditions': 'Unknown',
-    'Light_Conditions': 'Unknown',
-    'Road_Type': 'Unknown',
-    'Road_Surface_Conditions': 'Unknown',
-    'Number_of_Casualties': 0,
-    'Day_of_Week': 'Unknown',
-    'Time': 'Unknown',
-    'Vehicle_Type': 'Unknown',
-    'Speed_limit': 0
-}, inplace=True)
+    # Write to public folder
+    output_path = os.path.join('..', 'public', 'accident_data.json')
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(records, f)
+    print(f"✨ SUCCESS! {len(records)} points generated.")
 
-# Keep it light for JSON download, but enough for popups. 10k max is good if there are that many.
-# Actually, let's keep all India points, or we limit it to 20000. Let's see how big it gets.
-india_df = india_df.head(15000)
-
-records = []
-for index, row in india_df.iterrows():
-    records.append({
-        'id': str(index),
-        'lat': float(row['Latitude']),
-        'lng': float(row['Longitude']),
-        'severity': str(row['Accident_Severity']),
-        'weather': str(row['Weather_Conditions']),
-        'light': str(row['Light_Conditions']),
-        'road_type': str(row['Road_Type']),
-        'road_surface': str(row['Road_Surface_Conditions']),
-        'casualties': int(row['Number_of_Casualties']),
-        'day': str(row['Day_of_Week']),
-        'time': str(row['Time']),
-        'vehicle': str(row['Vehicle_Type']),
-        'speed_limit': int(row['Speed_limit'])
-    })
-
-with open('../public/ap_accidents.json', 'w') as f:
-    json.dump(records, f)
-
-print(f"✅ Generated JSON with {len(records)} records")
+if __name__ == "__main__":
+    generate_combined_json()
